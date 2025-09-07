@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: dana
+    ports: ["5432:5432"]
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/dana?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: dev-secret-change-me
+      REDIS_URL: redis://redis:6379
+      SMTP_FROM: noreply@example.com
+    ports: ["3000:3000"]
+    depends_on: [db, redis]
+    command: sh -c "pnpm i && pnpm db:push && pnpm db:seed && pnpm --filter @dana/web dev"
+
+  worker:
+    image: node:20
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/dana?schema=public
+      REDIS_URL: redis://redis:6379
+    depends_on: [db, redis]
+    command: sh -c "corepack enable && corepack prepare pnpm@9.6.0 --activate && pnpm i && pnpm --filter @dana/worker worker"
+
+volumes:
+  dbdata: {}

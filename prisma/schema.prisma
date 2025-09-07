@@ -1,0 +1,262 @@
+// Prisma schema for Dana Kehidupan
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password_hash String?
+  name          String?
+  locale        String   @default("id-ID")
+  currency      String   @default("IDR")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  accounts      Account[]
+  categories    Category[]
+  tags          Tag[]
+  transactions  Transaction[]
+  budgets       Budget[]
+  envelopes     Envelope[]
+  goals         Goal[]
+  debts         Debt[]
+  attachments   Attachment[]
+  auditLogs     AuditLog[]
+  institutions  Institution[]
+  syncs         SyncConnection[]
+  recurring     RecurringRule[]
+}
+
+model Account {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  name           String
+  type           AccountType
+  currency       String
+  openingBalance Int      @default(0)
+  archivedAt     DateTime?
+  transactions   Transaction[]
+  Debt           Debt[]
+
+  @@index([userId])
+}
+
+enum AccountType {
+  cash
+  bank
+  wallet
+  investment
+  liability
+}
+
+model Institution {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  name     String
+  country  String
+  metadata Json?
+
+  @@index([userId])
+}
+
+model SyncConnection {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  provider   String
+  status     String
+  lastSyncAt DateTime?
+  configJSON Json?
+  @@index([userId])
+}
+
+model Category {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  name     String
+  parentId String?
+  parent   Category? @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryToCategory")
+  type     CategoryType
+  items    BudgetItem[]
+  trans    Transaction[]
+
+  @@unique([userId, name, parentId])
+  @@index([userId])
+}
+
+enum CategoryType {
+  expense
+  income
+  transfer
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  name   String
+  color  String?
+  trans  TransactionTag[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Transaction {
+  id                 String         @id @default(cuid())
+  userId             String
+  user               User           @relation(fields: [userId], references: [id])
+  accountId          String
+  account            Account        @relation(fields: [accountId], references: [id])
+  type               TransactionType
+  amountMinor        Int
+  currency           String
+  fxRate             Float?
+  date               DateTime
+  payee              String?
+  description        String?
+  categoryId         String?
+  category           Category?      @relation(fields: [categoryId], references: [id])
+  transferAccountId  String?
+  notes              String?
+  isPending          Boolean        @default(false)
+  attachmentsCount   Int            @default(0)
+  importHash         String?        @unique
+  createdAt          DateTime       @default(now())
+  tags               TransactionTag[]
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([categoryId])
+}
+
+enum TransactionType {
+  expense
+  income
+  transfer
+}
+
+model TransactionTag {
+  transactionId String
+  tagId         String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  tag           Tag         @relation(fields: [tagId], references: [id])
+
+  @@id([transactionId, tagId])
+}
+
+model RecurringRule {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  scheduleCron String
+  templateJSON Json
+  nextRunAt   DateTime?
+  lastRunAt   DateTime?
+  isActive    Boolean  @default(true)
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  periodStart DateTime
+  periodEnd   DateTime
+  currency    String
+  items       BudgetItem[]
+
+  @@index([userId])
+}
+
+model BudgetItem {
+  id               String  @id @default(cuid())
+  budgetId         String
+  budget           Budget  @relation(fields: [budgetId], references: [id])
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  plannedMinor     Int
+  carriedOverMinor Int      @default(0)
+
+  @@index([budgetId])
+}
+
+model Envelope {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id])
+  name         String
+  balanceMinor Int     @default(0)
+
+  @@index([userId])
+}
+
+model Goal {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id])
+  name         String
+  targetMinor  Int
+  targetDate   DateTime?
+  currentMinor Int     @default(0)
+  priority     Int     @default(0)
+}
+
+model Debt {
+  id                   String  @id @default(cuid())
+  userId               String
+  user                 User    @relation(fields: [userId], references: [id])
+  name                 String
+  principalMinor       Int
+  apr                  Float
+  minimumPaymentMinor  Int
+  dueDayOfMonth        Int
+  type                 DebtType
+  accountId            String?
+  account              Account? @relation(fields: [accountId], references: [id])
+}
+
+enum DebtType {
+  loan
+  card
+}
+
+model Attachment {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  url           String
+  mime          String
+  size          Int
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  entity    String
+  entityId  String
+  action    String
+  beforeJSON Json?
+  afterJSON  Json?
+  createdAt  DateTime @default(now())
+}
+
+model FxRate {
+  date  DateTime
+  base  String
+  quote String
+  rate  Float
+  @@id([date, base, quote])
+}

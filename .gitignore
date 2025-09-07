@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+.turbo
+.env
+coverage
+playwright-report
+apps/web/.next
+apps/web/out
+apps/web/test-results
+uploads
+apps/web/public/uploads

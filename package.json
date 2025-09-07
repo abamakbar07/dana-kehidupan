@@ -1,0 +1,47 @@
+{
+  "name": "dana-kehidupan",
+  "private": true,
+  "packageManager": "pnpm@9.6.0",
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "e2e": "turbo run e2e",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev --name init",
+    "db:seed": "tsx prisma/seed.ts",
+    "worker": "turbo run worker --parallel",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "prisma": "^5.18.0",
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.4.0",
+    "@types/node": "^20.14.10",
+    "eslint": "^9.10.0",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.9",
+    "prettier": "^3.3.3",
+    "turbo": "^2.0.6",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js,jsx,css,md}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
+  "commitlint": {
+    "extends": ["@commitlint/config-conventional"]
+  }
+}

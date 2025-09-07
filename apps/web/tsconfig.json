@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "paths": {
+      "@ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["app", "components", "lib", "tests", "next-env.d.ts"],
+  "exclude": ["node_modules"]
+}

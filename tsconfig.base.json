@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["packages/config/*"],
+      "@ui/*": ["packages/ui/src/*"],
+      "@web/*": ["apps/web/*"]
+    }
+  }
+}

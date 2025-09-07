@@ -1,0 +1,21 @@
+{
+  "name": "@dana/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "worker": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.18.0",
+    "bullmq": "^5.10.7",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4"
+  }
+}
